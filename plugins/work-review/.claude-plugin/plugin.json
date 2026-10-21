@@ -1,0 +1,10 @@
+{
+  "name": "work-review",
+  "version": "0.1.0",
+  "description": "Do a task, then have an independent Sonnet reviewer check it and loop until it passes: /work-review:run <task>. Review existing changes only: /work-review:check.",
+  "author": {
+    "name": "hustudy1"
+  },
+  "homepage": "https://github.com/hustudy1/work-review",
+  "keywords": ["review", "subagent", "verification", "multi-agent"]
+}

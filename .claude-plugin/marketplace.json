@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "work-review",
+  "description": "작업 담당(메인 대화)과 검증 담당(Sonnet 서브에이전트)을 나눠 쓰는 Claude Code 플러그인",
+  "owner": {
+    "name": "hustudy1"
+  },
+  "plugins": [
+    {
+      "name": "work-review",
+      "description": "Do a task, then have an independent Sonnet reviewer check it and loop until it passes.",
+      "source": "./plugins/work-review",
+      "category": "development"
+    }
+  ]
+}
