@@ -1,7 +1,7 @@
 ---
 name: run
-description: "Do a task, then have an independent reviewer agent (Sonnet) check it, fix what it finds, and repeat until it passes or 3 rounds run out. Usage: /work-review:run [MAX_ROUNDS=n] <task>."
-argument-hint: "[MAX_ROUNDS=n] <task>"
+description: "Do a task, then have an independent reviewer agent (Sonnet by default) check it, fix what it finds, and repeat until it passes or 3 rounds run out. Usage: /work-review:run [REVIEWER=sonnet|opus|haiku|codex] [CODEX_MODEL=name] [MAX_ROUNDS=n] <task>."
+argument-hint: "[REVIEWER=sonnet|opus|haiku|codex] [CODEX_MODEL=name] [MAX_ROUNDS=n] <task>"
 disable-model-invocation: true
 ---
 
@@ -11,7 +11,12 @@ You are the implementer. You do the task yourself; an independent `reviewer` age
 
 **Arguments.** The invoking message reads: $ARGUMENTS
 
-If it starts with `MAX_ROUNDS=n` (a whole number from 1 to 5), that is the round limit; remove it. The default is 3. Everything else is the TASK, verbatim. If there is no task, reply with the usage line from the description and stop.
+Settings come first, in any order, as `NAME=value` tokens; remove them:
+- `REVIEWER=sonnet|opus|haiku|codex`: who reviews. `sonnet`, `opus` and `haiku` are this plugin's reviewer agent on that Claude model; `codex` is OpenAI Codex run read-only from the terminal. The default is `sonnet`. Any other value is an error: name the allowed values and stop.
+- `CODEX_MODEL=name`: the Codex model (letters, digits, `.`, `_`, `-` only), used only with `REVIEWER=codex`. The default is Codex's own configured model.
+- `MAX_ROUNDS=n`: the round limit, a whole number from 1 to 5. The default is 3.
+
+Everything after the settings is the TASK, verbatim. If there is no task, reply with the usage line from the description and stop.
 
 ## Step 1: Baseline
 
@@ -31,7 +36,7 @@ Do not commit, push, or deploy. The user decides that after the run.
 
 For ROUND = 1, 2, … up to MAX_ROUNDS:
 
-1. Launch the reviewer agent with this message, filled in:
+1. Launch the reviewer agent with its model set to REVIEWER (pass it as the agent's model parameter), and this message, filled in:
 
    ```
    TASK: <the task, verbatim>
@@ -42,6 +47,16 @@ For ROUND = 1, 2, … up to MAX_ROUNDS:
    ```
 
    Pass facts, not persuasion. Do not tell the reviewer the work is correct.
+
+   If REVIEWER is `codex`, do not launch the agent. Instead run this with Bash (timeout 600000 ms), putting the same message between the markers, and treat its output as the reviewer's reply:
+
+   ```
+   bash "${CLAUDE_SKILL_DIR}/../../scripts/codex-review.sh" <CODEX_MODEL or nothing> <<'WORK_REVIEW_MSG'
+   <the message>
+   WORK_REVIEW_MSG
+   ```
+
+   Exit code 3 means the `codex` command is not installed: stop and tell the user to run `npm install -g @openai/codex` and then `codex login` (a login made in the Codex VS Code extension is shared, so `codex login` may not be needed). Exit code 4 means Codex failed: show the error lines and stop.
 
 2. Find the `VERDICT:` line in the reply (ignore a surrounding code block or blank lines).
    - `VERDICT: PASS`: go to Step 4.
@@ -54,6 +69,7 @@ If MAX_ROUNDS runs out without a PASS, stop. Do not keep fixing without review.
 
 Tell the user, in the language they wrote the task in:
 
+- **Reviewer**: REVIEWER (and CODEX_MODEL if set).
 - **Result**: passed in round n / not passed after n rounds / needs your decision (the task conflicts with a project rule: name the rule and the two options) / review could not be completed.
 - **What changed**: the files and a one-line summary of each.
 - **Review history**: per round, the findings and what you did (fixed / rejected and why).

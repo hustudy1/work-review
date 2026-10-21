@@ -1,7 +1,7 @@
 {
   "name": "work-review",
-  "version": "0.1.0",
-  "description": "Do a task, then have an independent Sonnet reviewer check it and loop until it passes: /work-review:run <task>. Review existing changes only: /work-review:check.",
+  "version": "0.2.0",
+  "description": "Do a task, then have an independent reviewer (Sonnet by default; REVIEWER= for Opus, Haiku or OpenAI Codex) check it and loop until it passes: /work-review:run <task>. Review existing changes only: /work-review:check.",
   "author": {
     "name": "hustudy1"
   },
